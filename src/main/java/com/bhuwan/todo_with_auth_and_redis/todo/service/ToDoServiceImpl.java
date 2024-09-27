@@ -3,13 +3,12 @@ package com.bhuwan.todo_with_auth_and_redis.todo.service;
 import com.bhuwan.todo_with_auth_and_redis.auth.model.User;
 import com.bhuwan.todo_with_auth_and_redis.auth.repository.UserRepository;
 import com.bhuwan.todo_with_auth_and_redis.todo.dto.CreateToDoRequest;
-import com.bhuwan.todo_with_auth_and_redis.todo.dto.ToDoResponse;
 import com.bhuwan.todo_with_auth_and_redis.todo.dto.UpdateToDoRequest;
 import com.bhuwan.todo_with_auth_and_redis.todo.model.ToDo;
 import com.bhuwan.todo_with_auth_and_redis.todo.repository.ToDoRepository;
-import com.bhuwan.todo_with_auth_and_redis.todo.service.ToDoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,7 +44,7 @@ public class ToDoServiceImpl implements ToDoService {
     }
 
     @Override
-    @CacheEvict(value = "todos", allEntries = true)
+    @CachePut(cacheNames = "todos", key = "#id")
     public ToDo updateToDo(Long id, UpdateToDoRequest updateToDoRequest) {
         ToDo toDo = new ToDo();
         toDo.setTitle(updateToDoRequest.getTitle());
@@ -72,7 +71,7 @@ public class ToDoServiceImpl implements ToDoService {
     }
 
     @Override
-    @CacheEvict(value = "todos", allEntries = true)
+    @CacheEvict(cacheNames = "todos", key = "#id", beforeInvocation = true)
     public void deleteToDo(Long id) {
         ToDo existingToDo = toDoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("To-Do not found"));
@@ -104,7 +103,7 @@ public class ToDoServiceImpl implements ToDoService {
     }
 
     @Override
-    @Cacheable(value = "todos", key = "#currentUser.id")
+    @Cacheable(value = "todos", key = "#root.methodName")
     public List<ToDo> getAllToDos() {
         User currentUser = getCurrentAuthenticatedUser();
         return toDoRepository.findAllByUser(currentUser);

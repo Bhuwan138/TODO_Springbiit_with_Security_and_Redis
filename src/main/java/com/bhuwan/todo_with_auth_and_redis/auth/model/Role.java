@@ -4,12 +4,13 @@ import com.bhuwan.todo_with_auth_and_redis.config.USER_ROLES;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
 @Table(name = "roles")
 @Data
-public class Role {
+public class Role implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
